@@ -58,7 +58,7 @@ jobs:
         args: install nasm
     - name: Build TQUIC library and tools
       run: |
-        cargo build --all -F ffi --verbose
+        cargo build --all -F ffi --verbose --release
         cp target/release/tquic_server.exe tquic_server.exe
         cp target/release/tquic_client.exe tquic_client.exe
 
