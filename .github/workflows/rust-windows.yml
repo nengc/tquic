@@ -1,0 +1,45 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+
+    - name: Update rust
+      run: rustup update
+    - name: Build tquic
+      run: |
+        cargo build --all --release
+        cp target/release/tquic_server tquic_server
+        cp target/release/tquic_client tquic_client
+    - name: Build start script
+      run: |
+        echo $'#!/bin/bash\ncd "$(dirname "$0")"\nchmod u+x ./tquic_server\n./tquic_server --send-udp-payload-size 1350 --log-level OFF --root ../files --disable-stateless-reset -l 0.0.0.0:4433 -c ../cert/cert.crt -k ../cert/cert.key &' > start_tquic.sh
+        chmod u+x start_tquic.sh
+    - name: Upload tquic_server
+      uses: actions/upload-artifact@v4
+      with:
+        name: tquic_server_bin
+        path: |
+          tquic_server
+          start_tquic.sh
+    - name: Upload tquic_client
+      uses: actions/upload-artifact@v4
+      with:
+        name: tquic_client_bin
+        path: tquic_client
+      
